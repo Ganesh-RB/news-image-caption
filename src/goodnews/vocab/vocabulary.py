@@ -13,10 +13,11 @@ class Vocabulary(object):
     Note: Vocabulary is generated from the captions only.
     """
 
-    def __init__(self, captionFile, vocab_threshold, vocab_file='vocab.pkl', start_word="<start>", end_word="<end>",
-                 unk_word="<unk>"):
+    def __init__(self, captionFile, vocab_threshold, vocab_file='vocab.pkl', pad_word='<pad>', start_word="<start>",
+                 end_word="<end>", unk_word="<unk>"):
         self.vocab_threshold = vocab_threshold
         self.vocab_file = vocab_file
+        self.pad_word = pad_word
         self.start_word = start_word
         self.end_word = end_word
         self.unk_word = unk_word
@@ -25,9 +26,9 @@ class Vocabulary(object):
         if os.path.exists(self.vocab_file):
             print("loading already saved file")
             with open(self.vocab_file, 'rb') as f:
-                pretrained_vocab = pickle.load(f)
-                self.word2idx = pretrained_vocab.word2idx
-                self.idx2word = pretrained_vocab.idx2word
+                vocab = pickle.load(f)
+                self.word2idx = vocab.word2idx
+                self.idx2word = vocab.idx2word
         else:
             self.init_vocab()
             self.build_vocab()
@@ -37,13 +38,15 @@ class Vocabulary(object):
         self.idx2word = {}
 
         # Add the special tokens to the vocabulary.
-        self.word2idx[self.start_word] = 0
-        self.word2idx[self.end_word] = 1
-        self.word2idx[self.unk_word] = 2
+        self.word2idx[self.pad_word] = 0
+        self.word2idx[self.start_word] = 1
+        self.word2idx[self.end_word] = 2
+        self.word2idx[self.unk_word] = 3
 
-        self.idx2word[0] = self.start_word
-        self.idx2word[1] = self.end_word
-        self.idx2word[2] = self.unk_word
+        self.idx2word[0] = self.pad_word
+        self.idx2word[1] = self.start_word
+        self.idx2word[2] = self.end_word
+        self.idx2word[3] = self.unk_word
 
     def build_vocab(self):
         # Build the vocabulary.
@@ -66,7 +69,7 @@ class Vocabulary(object):
         words = [word for word, cnt in counter.items() if cnt >= self.vocab_threshold]
 
         # Create a mapping from the words to the indices.
-        idx = 3
+        idx = 4
         for word in words:
             self.word2idx[word] = idx
             self.idx2word[idx] = word
@@ -84,6 +87,5 @@ class Vocabulary(object):
     def __len__(self):
         return len(self.word2idx)
 
-
-vocab = Vocabulary("data/caption.json", 5,
-                   "/content/drive/MyDrive/Academic/Sem8/NLP/Project/news-image-caption/models/vocab.pkl", )
+# vocab = Vocabulary("data/caption.json", 5,
+#                    "/content/drive/MyDrive/Academic/Sem8/NLP/Project/news-image-caption/models/vocab.pkl", )
