@@ -41,7 +41,7 @@ class EncoderBert(nn.Module):
         last_hidden_states['last_hidden_state'].size()
 
         features = last_hidden_states[0][:, 0, :].numpy()
-        return features
+        return torch.Tensor(features)
 
 
 class Encoder(nn.Module):

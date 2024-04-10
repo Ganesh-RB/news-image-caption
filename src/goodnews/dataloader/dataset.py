@@ -22,7 +22,7 @@ class NewsImageCaptionDataset(Dataset):
         self.captions = []
         self.articles = []
         self.data = []
-        
+
         self.logger = logging.getLogger(__name__)
         self.logger.info(f"Loading Data from {caption_file}")
 
@@ -39,12 +39,10 @@ class NewsImageCaptionDataset(Dataset):
                 if not self._is_image_available(f"{image_dir}/{image_name}"):
                     self.logger.debug(f"Image not found: {image_name}")
                     continue
-                
+
                 self.captions.append(caption)
                 self.articles.append(article)
-                
-                # TODO: make this step in getitem part of the pipeline
-                # img = self._load_image(f"{image_dir}/{image_name}")
+
                 self.data.append({"image": f"{image_dir}/{image_name}", "caption": caption, "article": article})
 
         self.logger.info(f"Loaded {len(self.data)} images")
@@ -64,16 +62,16 @@ class NewsImageCaptionDataset(Dataset):
 
     def __len__(self):
         return len(self.data)
-    
+
     def get_captions(self):
         return self.captions
-    
+
     def get_articles(self):
         return self.articles
-    
+
     def __getitem__(self, idx):
         item = self.data[idx]
         img = self._load_image(item["image"])
-        return {"image": self.image_transform(img) if self.image_transform else img,
-                "caption": self.caption_transform(self.caption_vocab, item["caption"]) if self.caption_transform else item["caption"],
-                "article": self.article_transform(item["article"]) if self.article_transform else item["article"]}
+        return  (self.image_transform(img) if self.image_transform else img,
+        self.article_transform(item["article"]) if self.article_transform else item["article"],
+        self.caption_transform(self.caption_vocab, item["caption"]) if self.caption_transform else item["caption"])

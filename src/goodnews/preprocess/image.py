@@ -1,8 +1,7 @@
 import torch
 from torchvision import transforms
 
-def image_transform():
-    return transforms.Compose([
+image_transform =  transforms.Compose([
     transforms.Resize(256),                          # smaller edge of image resized to 256
     transforms.RandomCrop(224),                      # get 224x224 crop from random location
     transforms.RandomHorizontalFlip(),               # horizontally flip image with probability=0.5
