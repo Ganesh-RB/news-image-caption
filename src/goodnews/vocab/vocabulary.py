@@ -13,7 +13,7 @@ class Vocabulary(object):
     Note: Vocabulary is generated from the captions only.
     """
 
-    def __init__(self, captionFile, vocab_threshold, vocab_file='vocab.pkl', pad_word='<pad>', start_word="<start>",
+    def __init__(self, captionFile, vocab_threshold, preprocess_caption=None, vocab_file='vocab.pkl', pad_word='<pad>', start_word="<start>",
                  end_word="<end>", unk_word="<unk>"):
         self.vocab_threshold = vocab_threshold
         self.vocab_file = vocab_file
@@ -22,6 +22,7 @@ class Vocabulary(object):
         self.end_word = end_word
         self.unk_word = unk_word
         self.captionFile = captionFile
+        self.preprocess_caption = preprocess_caption
 
         if os.path.exists(self.vocab_file):
             print("loading already saved file")
@@ -58,8 +59,11 @@ class Vocabulary(object):
         i = 0
         for key, item in json_data.items():
             for idx, caption in item['images'].items():
+                if self.preprocess_caption:
+                    caption = self.preprocess_caption(caption)
+                
                 i += 1
-                tokens = nltk.tokenize.word_tokenize(caption.lower())
+                tokens = nltk.tokenize.word_tokenize(caption)
                 counter.update(tokens)
 
                 if i % 100000 == 0:
