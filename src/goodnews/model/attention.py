@@ -30,11 +30,11 @@ class EncoderBert(nn.Module):
         self.bert = bert_model
 
     def forward(self, articles):
-        padded = articles.cpu().data.numpy()
-        attention_mask = np.where(padded != 0, 1, 0)
+        
+        attention_mask = (articles != 0).float()
+
         # Getting vectors
-        input_ids = torch.tensor(padded)
-        attention_mask = torch.tensor(attention_mask)
+        input_ids = articles
 
         with torch.no_grad():
             last_hidden_states = self.bert(input_ids, attention_mask=attention_mask)
