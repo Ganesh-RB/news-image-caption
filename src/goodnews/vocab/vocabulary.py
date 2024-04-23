@@ -94,10 +94,13 @@ class Vocabulary(object):
     def get_words(self, encoding):
         words = []
         for i, e in enumerate(encoding):
-            word = self.idx2word[e]
-            if word == self.end_word or i >= 19:
+            try:
+              word = self.idx2word[e]
+              if word == self.end_word or i >= 19:
                 break
-            words.append(word)
+              words.append(word)
+            except:
+              words.append(self.unk_word)
         words.append(self.end_word)
         return words
 
