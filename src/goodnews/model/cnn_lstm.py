@@ -75,7 +75,7 @@ class DecoderRNN(nn.Module):
         inputs = torch.cat((features.unsqueeze(1), embeddings), 1)
         hidden, _ = self.lstm(inputs)
         outputs = self.linear(hidden)
-        return outputs
+        return outputs, None, None
 
     def sample(self, inputs, states=None, max_len=20):
         """Accept a pre-processed image tensor (inputs) and return predicted
@@ -127,11 +127,12 @@ class DecoderRNN(nn.Module):
         return [idx_seq[0] for idx_seq in idx_sequences]
 
 
+
 class EncoderDecoder(nn.Module):
-    def __init__(self, embed_size, vocab_size, decoder_dim,                  bert_model=None):
+    def __init__(self, embed_size, vocab_size, bert_encoder_size=768, decoder_dim=512, bert_model=None):
         super().__init__()
         self.encoder = Encoder(embed_size, bert_model)
-        self.decoder = DecoderRNN(embed_size, decoder_dim, vocab_size)
+        self.decoder = DecoderRNN(embed_size + bert_encoder_size, decoder_dim, vocab_size)
 
     def forward(self, images, captions, articles):
         features = self.encoder(images, articles)

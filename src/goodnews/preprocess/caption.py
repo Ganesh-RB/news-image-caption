@@ -6,8 +6,8 @@ import re
 
 def preprocess_caption(caption):
     """Preprocess caption text by removing punctuations and making lowercase."""
-    caption = re.sub(r'[^\w\s]', '', caption)
-    caption = caption.lower()
+    caption = re.sub(r'[^\w\s]', ' ', caption)
+    caption = re.sub(r'[\r\n]', ' ', caption)
     return caption
 
 

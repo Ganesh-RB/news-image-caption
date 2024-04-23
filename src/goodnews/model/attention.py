@@ -105,7 +105,7 @@ class DecoderRNN(nn.Module):
         h, c = self.init_hidden_state(features, articles)  # (batch_size, decoder_dim)
 
         #get the seq length to iterate
-        seq_length = len(captions[0]) - 1  #Exclude the last one
+        seq_length = len(captions[0])   #Exclude the last one
         batch_size = captions.size(0)
         num_features = features.size(1)
         para_features_num = articles.size(1)
@@ -137,6 +137,7 @@ class DecoderRNN(nn.Module):
         h, c = self.init_hidden_state(features, articles)  # (batch_size, decoder_dim)
 
         alphas = []
+        para_alphas = []
 
         #starting input
         word = torch.tensor(vocab.word2idx['<start>']).view(1, -1).to(device)
@@ -146,11 +147,13 @@ class DecoderRNN(nn.Module):
 
         for i in range(max_len):
             alpha, context = self.attention(features, h)
+            para_alpha, para_context = self.para_attention(articles, h)
 
             #store the apla score
             alphas.append(alpha.cpu().detach().numpy())
-
-            lstm_input = torch.cat((embeds[:, 0], context), dim=1)
+            para_alphas.append(para_alpha.cpu().detach().numpy())
+            
+            lstm_input = torch.cat((embeds[:, 0], context, para_context), dim=1)
             h, c = self.lstm_cell(lstm_input, (h, c))
             output = self.fcn(self.drop(h))
             output = output.view(batch_size, -1)
@@ -169,17 +172,46 @@ class DecoderRNN(nn.Module):
             embeds = self.embedding(predicted_word_idx.unsqueeze(0))
 
         #covert the vocab idx to words and return sentence
-        return [vocab.idx2word[idx] for idx in captions], alphas
+        return [vocab.idx2word[idx] for idx in captions], alphas, para_alphas
 
     def init_hidden_state(self, encoder_out, bert_encoder_out):
         mean_encoder_out = encoder_out.mean(dim=1)
         mean_bert_encoder_out = bert_encoder_out.mean(dim=1)
-        print(mean_encoder_out.shape, mean_bert_encoder_out.shape)
         inp = torch.cat((mean_encoder_out, mean_bert_encoder_out), 1)  #TODO: check for cat dim argument severty:low
         h = self.init_h(inp)  # (batch_size, decoder_dim)
         c = self.init_c(inp)
         return h, c
 
+    def sample(self, features, articles, max_len=20):
+                # Inference part
+        # Given the image features generate the captions
+
+        batch_size = features.size(0)
+        h, c = self.init_hidden_state(features, articles)  # (batch_size, decoder_dim)
+
+        alphas = []
+        para_alphas = []
+
+        #starting input
+        word = torch.tensor(vocab.word2idx['<start>']).view(1, -1).to(device)
+        embeds = self.embedding(word)
+
+        captions = []
+
+        for i in range(max_len):
+            alpha, context = self.attention(features, h)
+            para_alpha, para_context = self.para_attention(articles, h)
+
+            #store the apla score
+            alphas.append(alpha.cpu().detach().numpy())
+            para_alphas.append(para_alpha.cpu().detach().numpy())
+            
+            lstm_input = torch.cat((embeds[:, 0], context, para_context), dim=1)
+            h, c = self.lstm_cell(lstm_input, (h, c))
+            output = self.fcn(self.drop(h))
+            output = output.view(batch_size, -1)
+            
+        return captions, alphas, para_alphas
 
 class EncoderDecoder(nn.Module):
     def __init__(self, embed_size, vocab_size, attention_dim, encoder_dim, bert_encoder_dim, decoder_dim, drop_prob=0.3,

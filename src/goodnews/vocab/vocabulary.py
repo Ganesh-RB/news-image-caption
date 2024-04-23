@@ -90,6 +90,21 @@ class Vocabulary(object):
 
     def __len__(self):
         return len(self.word2idx)
+    
+    def get_words(self, encoding):
+        words = []
+        for i, e in enumerate(encoding):
+            word = self.idx2word[e]
+            if word == self.end_word or i >= 19:
+                break
+            words.append(word)
+        words.append(self.end_word)
+        return words
 
+    def get_sentence(self, encoding):
+        words = self.get_words(encoding)
+        words = words[1:]
+        words = words[:-1]
+        return " ".join(words)
 # vocab = Vocabulary("data/caption.json", 5,
 #                    "/content/drive/MyDrive/Academic/Sem8/NLP/Project/news-image-caption/models/vocab.pkl", )
