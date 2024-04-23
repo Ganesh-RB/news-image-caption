@@ -29,7 +29,7 @@ class EncoderBert(nn.Module):
         self.bert = bert_model
 
     def forward(self, articles):
-        padded = articles.cpu().numpy()
+        padded = articles.cpu().data.numpy()
         attention_mask = np.where(padded != 0, 1, 0)
         # Getting vectors
         input_ids = torch.tensor(padded)
